@@ -1,0 +1,18 @@
+{
+    "token": "",
+    "whitelist": [],
+    "ip_changes": [],
+    "restarts": [],
+    "connection": {
+        "max_retries": 300,
+        "retry_timeout": 60,
+        "ip_check_interval": 3600,
+        "uptime_threshold": 600
+    },
+    "logging": {
+        "log_file": "/var/log/rpi-telegram-bot.log",
+        "max_backups": 10,
+        "file_max_bytes": 10485760
+    },
+    "images_dlna_basepath": "/home/pi/minidlna/"
+}

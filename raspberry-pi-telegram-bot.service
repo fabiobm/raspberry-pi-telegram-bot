@@ -1,0 +1,10 @@
+[Unit]
+Description=Telegram Bot for interacting with the Raspberry Pi
+After=network-online.target
+
+[Service]
+WorkingDirectory=/home/pi/Developer/raspberry-pi-telegram-bot
+ExecStart=/home/pi/Developer/raspberry-pi-telegram-bot/ENV/bin/python bot.py
+
+[Install]
+WantedBy=network-online.target

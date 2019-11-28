@@ -133,3 +133,11 @@ system.
 
 If you have any bugs, improvements or ideas to report, feel free to create issues
 and/or pull requests or forks and I will try to reply/review as soon as I can!
+
+
+## TODO List
+
+Possible features/ideas:
+* [ ] Allow user to choose between Portuguese and English replies
+* [ ] Allow user to send/save videos, not only images
+* [ ] Create command to display latest logs

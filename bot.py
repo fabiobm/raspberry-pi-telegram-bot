@@ -1,5 +1,6 @@
 from datetime import datetime
 from time import sleep
+from requests import ConnectionError
 import json, logging, os, requests, subprocess, sys
 
 from telegram.error import NetworkError
@@ -14,14 +15,14 @@ default_settings = {
         "max_retries": 300,
         "retry_timeout": 60,
         "ip_check_interval": 3600,
-        "uptime_threshold": 600
+        "uptime_threshold": 600,
     },
     "logging": {
         "log_file": "/var/log/rpi-telegram-bot.log",
         "max_backups": 10,
-        "file_max_bytes": 10485760
+        "file_max_bytes": 10485760,
     },
-    "images_dlna_basepath": "/home/pi/minidlna/"
+    "images_dlna_basepath": "/home/pi/minidlna/",
 }
 
 settings = {}
@@ -49,18 +50,24 @@ logging.basicConfig(
     ],
 )
 
-if 'token' not in settings or not settings['token']:
-    logging.fatal('The Telegram API token must be provided for the bot to work. Exiting')
+if "token" not in settings or not settings["token"]:
+    logging.fatal(
+        "The Telegram API token must be provided for the bot to work. Exiting"
+    )
     sys.exit(0)
 
-if not settings_get('whitelist'):
-    logging.warning('There are no user IDs on the whitelist. ' + 'The bot will ignore all messages')
+if not settings_get("whitelist"):
+    logging.warning(
+        "There are no user IDs on the whitelist. The bot will ignore all messages"
+    )
 
 handlers = []
 
 
 def get_filtered_command_handler(command, handler):
-    return CommandHandler(command, handler, Filters.user(user_id=settings_get("whitelist")))
+    return CommandHandler(
+        command, handler, Filters.user(user_id=settings_get("whitelist"))
+    )
 
 
 def get_ip():
@@ -138,14 +145,10 @@ def get_image_file_name(basepath, basename, file_name=None):
         os.makedirs(directory)
 
     i = 0
-    name = "{}/{}.{}".format(
-        directory, basename.rstrip("/"), extension
-    )
+    name = "{}/{}.{}".format(directory, basename.rstrip("/"), extension)
     while os.path.isfile(name):
         i += 1
-        name = "{}/{}_{}.{}".format(
-            directory, basename.rstrip("/"), i, extension
-        )
+        name = "{}/{}_{}.{}".format(directory, basename.rstrip("/"), i, extension)
     return name
 
 
@@ -177,7 +180,7 @@ handlers.append(get_filtered_command_handler("ip", ip_handler))
 handlers.append(get_filtered_command_handler("temperature", temperature_handler))
 handlers.append(get_filtered_command_handler("uptime", uptime_handler))
 
-if settings_get('images_dlna_basepath'):
+if settings_get("images_dlna_basepath"):
     handlers.append(MessageHandler(Filters.photo, image_handler))
     handlers.append(MessageHandler(Filters.document.image, image_file_handler))
 
@@ -189,10 +192,10 @@ def main():
     dispatcher = updater.dispatcher
     job_queue = updater.job_queue
 
-    if settings_get('restarts'):
+    if settings_get("restarts"):
         job_queue.run_once(alert_restart, 0)
 
-    if settings_get('ip_changes'):
+    if settings_get("ip_changes"):
         job_queue.run_repeating(
             check_ip,
             settings_get("connection")["ip_check_interval"],
@@ -214,7 +217,9 @@ if __name__ == "__main__":
         try:
             main()
             break
-        except NetworkError as err:
+        except (ConnectionError, NetworkError) as err:
             retry_timeout = settings_get("connection")["retry_timeout"]
-            logging.exception("Network error. Retrying in {} seconds".format(retry_timeout))
+            logging.exception(
+                "Network/connection error. Retrying in {} seconds".format(retry_timeout)
+            )
             sleep(retry_timeout)

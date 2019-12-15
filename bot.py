@@ -1,4 +1,5 @@
 from datetime import datetime
+from ipaddress import ip_address
 from time import sleep
 from requests import ConnectionError
 import json, logging, os, requests, subprocess, sys
@@ -70,8 +71,24 @@ def get_filtered_command_handler(command, handler):
     )
 
 
+def ip_is_valid(ip):
+    try:
+        ip_address(ip)
+        return True
+    except ValueError:
+        return False
+
+
 def get_ip():
-    return requests.get("https://api.ipify.org").text
+    sources = ['https://api.ipify.org', 'https://ident.me', 'https://ipinfo.io/ip']
+    for source in sources:
+        response = requests.get(source)
+        ip = response.text.strip()
+
+        if response.ok and ip_is_valid(ip):
+            return ip
+
+    return None
 
 
 def get_uptime(*args):
@@ -105,7 +122,7 @@ def start_handler(update, context):
 
 def check_ip(context):
     new_ip = get_ip()
-    if new_ip != context.job.context:
+    if new_ip and new_ip != context.job.context:
         context.job.context = new_ip
         for user_id in settings_get("ip_changes"):
             context.bot.send_message(
@@ -115,7 +132,7 @@ def check_ip(context):
 
 def ip_handler(update, context):
     context.bot.send_message(
-        chat_id=update.effective_chat.id, text=get_ip(),
+        chat_id=update.effective_chat.id, text=get_ip() or 'Could not get IP',
     )
 
 

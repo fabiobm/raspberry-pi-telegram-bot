@@ -3,6 +3,7 @@
     "whitelist": [],
     "ip_changes": [],
     "restarts": [],
+    "max_text_warning": 3,
     "connection": {
         "max_retries": 300,
         "retry_timeout": 60,

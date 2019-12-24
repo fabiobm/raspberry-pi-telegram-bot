@@ -43,6 +43,7 @@ The following commands/interactions are available:
 (as reported by the `vcgencmd measure_temp` command), in celsius
 * `/uptime`: Replies with the Raspberry Pi's uptime (as reported by the `uptime`
 command)
+* `/help`: Replies with available commands and actions
 * Sending an image (as a photo) saves it at a subdirectory of the
 `images_dlna_basepath` [setting](#settings) named after the current date
 (in `%Y-%m-%d` strftime format), with the filename `image.jpg` (or `image_1`,
@@ -53,7 +54,25 @@ in which case its info will be available at the logs only)
 * Sending an image as a file results in the same as sending it as a photo, the
 only difference being that its original extension is used in the filename
 
-Other commands or messages/attachments are ignored.
+Unknown commands will prompt a reply alerting that the commands is unknown and
+directing to the `/help` command. Regular text messages will prompt a reply
+alerting that the bot does not reply to them and directing to the `/help`
+command after every `max_text_warning` (see the setting [below](#settings))
+messages. Attachments that are not images will be ignored.
+
+### Command information/suggestion
+
+![command information](command_info.png)
+
+In order to get command information/suggestion as you type, such as in the
+screenshot above, you must provide this information to BotFather after having
+registered the bot.
+
+To do this, go to the chat with BotFather, use the `/setcommands` command,
+choose your bot and then reply with the commands and respective information
+in the specified format. To make this easier, you can copy the contents of
+the [command_descriptions](command_descriptions.txt) file, as it already
+contains the commands and information in the correct format.
 
 ## Settings
 
@@ -78,6 +97,9 @@ there will be a warning if used like that as all messages would be ignored
 Raspberry Pi's **external** IP changes. The default is an empty lisy
 * `restarts`: List with the user IDs of users that may be notified when the bot
 [re]starts. The default is an empty list
+* `max_text_warning`: Number of regular text messages after which the bot will
+reply with a warning stating that it does not reply to these messages and
+pointing to the `/help` command. Defaults to `3`
 * `connection`: Object with the following connection-related properties:
     * `max_retries`: Maximum number of times the bot will retry its initialization
     process. The default is `300`

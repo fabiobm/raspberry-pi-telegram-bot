@@ -6,12 +6,14 @@ import json, logging, os, requests, subprocess, sys
 
 from telegram.error import NetworkError
 from telegram.ext import CommandHandler, Filters, MessageHandler, Updater
+import telegram
 
 
 default_settings = {
     "whitelist": [],
     "ip_changes": [],
     "restarts": [],
+    "max_text_warning": 3,
     "connection": {
         "max_retries": 300,
         "retry_timeout": 60,
@@ -80,7 +82,7 @@ def ip_is_valid(ip):
 
 
 def get_ip():
-    sources = ['https://api.ipify.org', 'https://ident.me', 'https://ipinfo.io/ip']
+    sources = ["https://api.ipify.org", "https://ident.me", "https://ipinfo.io/ip"]
     for source in sources:
         response = requests.get(source)
         ip = response.text.strip()
@@ -132,7 +134,7 @@ def check_ip(context):
 
 def ip_handler(update, context):
     context.bot.send_message(
-        chat_id=update.effective_chat.id, text=get_ip() or 'Could not get IP',
+        chat_id=update.effective_chat.id, text=get_ip() or "Could not get IP",
     )
 
 
@@ -191,11 +193,56 @@ def image_file_handler(update, context):
     )
 
 
+def text_handler(update, context):
+    """Handles regular text messages (not commands)"""
+
+    if "text_messages" in context.chat_data:
+        context.chat_data["text_messages"] += 1
+
+        if context.chat_data["text_messages"] >= settings_get("max_text_warning"):
+            context.bot.send_message(
+                chat_id=update.effective_chat.id,
+                text="This bot will not reply to regular text messages.\n"
+                + "Use /help to see available commands and actions",
+            )
+            context.chat_data["text_messages"] = 0
+    else:
+        context.chat_data["text_messages"] = 0
+
+
+def help_handler(update, context):
+    """Handles /help commands, explaining available commands and actions"""
+
+    with open("command_descriptions.txt") as f:
+        context.bot.send_message(
+            chat_id=update.effective_chat.id,
+            text="*Commands*:\n"
+            + "\n".join("/" + line for line in f.readlines())
+            + "\n\n*Other Actions*\n"
+            + "Sending an image will save it if the"
+            + " bot is configured to do so (it will reply if the image is successfully saved)\n",
+            parse_mode=telegram.ParseMode.MARKDOWN,
+        )
+
+
+def unknown_handler(update, context):
+    """Handles unknown commands"""
+
+    context.bot.send_message(
+        chat_id=update.effective_chat.id,
+        text="Unknown command.\nUse /help to see available commands and actions",
+    )
+
+
 handlers.append(get_filtered_command_handler("start", start_handler))
 
 handlers.append(get_filtered_command_handler("ip", ip_handler))
 handlers.append(get_filtered_command_handler("temperature", temperature_handler))
 handlers.append(get_filtered_command_handler("uptime", uptime_handler))
+handlers.append(get_filtered_command_handler("help", help_handler))
+
+handlers.append(MessageHandler(Filters.text, text_handler))
+handlers.append(MessageHandler(Filters.command, unknown_handler))
 
 if settings_get("images_dlna_basepath"):
     handlers.append(MessageHandler(Filters.photo, image_handler))

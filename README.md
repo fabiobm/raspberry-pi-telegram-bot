@@ -91,8 +91,11 @@ without a valid value for this property
 * `whitelist`: List with the user IDs of the users that the bot will respond to.
 One way to get a user ID is by messaging [`userinfobot`](https://t.me/userinfobot);
 you can also use the `python-telegram-bot` API itself and get it from the `User`
-object available at `update.message.from_user`. The default is an empty list but
-there will be a warning if used like that as all messages would be ignored
+object available at `update.message.from_user`. The default is a list with the
+`-1` value (an invalid ID) but there will be a warning if used like that as all
+messages would be ignored. The list should not be empty; if you really want the
+bot not to reply to anyone, keep the default or use similar invalid IDs such as
+`0`
 * `ip_changes`: List with the user IDs of users that will be notified when the
 Raspberry Pi's **external** IP changes. The default is an empty lisy
 * `restarts`: List with the user IDs of users that may be notified when the bot
@@ -160,6 +163,7 @@ and/or pull requests or forks and I will try to reply/review as soon as I can!
 ## TODO List
 
 Possible features/ideas:
+* [ ] Tests
 * [ ] Allow user to choose between Portuguese and English replies
 * [ ] Allow user to send/save videos, not only images
 * [ ] Create command to display latest logs

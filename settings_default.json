@@ -1,6 +1,6 @@
 {
     "token": "",
-    "whitelist": [],
+    "whitelist": [-1],
     "ip_changes": [],
     "restarts": [],
     "max_text_warning": 3,

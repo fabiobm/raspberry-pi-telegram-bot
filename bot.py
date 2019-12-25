@@ -10,7 +10,7 @@ import telegram
 
 
 default_settings = {
-    "whitelist": [],
+    "whitelist": [-1],
     "ip_changes": [],
     "restarts": [],
     "max_text_warning": 3,
@@ -38,7 +38,7 @@ if not settings:
 
 
 def settings_get(key):
-    return settings.get(key, default_settings[key])
+    return settings.get(key, default_settings[key]) or default_settings[key]
 
 
 logging.basicConfig(
@@ -59,9 +59,10 @@ if "token" not in settings or not settings["token"]:
     )
     sys.exit(0)
 
-if not settings_get("whitelist"):
+if not settings_get("whitelist") or settings_get("whitelist") == [-1]:
     logging.warning(
-        "There are no user IDs on the whitelist. The bot will ignore all messages"
+        "There are no user IDs on the whitelist or it contains only the default "
+        + "invalid value (-1). The bot will ignore all messages"
     )
 
 handlers = []
@@ -70,6 +71,12 @@ handlers = []
 def get_filtered_command_handler(command, handler):
     return CommandHandler(
         command, handler, Filters.user(user_id=settings_get("whitelist"))
+    )
+
+
+def get_filtered_message_handler(filters, callback, **kwargs):
+    return MessageHandler(
+        filters & Filters.user(user_id=settings_get("whitelist")), callback, kwargs
     )
 
 
@@ -207,7 +214,7 @@ def text_handler(update, context):
             )
             context.chat_data["text_messages"] = 0
     else:
-        context.chat_data["text_messages"] = 0
+        context.chat_data["text_messages"] = 1
 
 
 def help_handler(update, context):
@@ -241,12 +248,14 @@ handlers.append(get_filtered_command_handler("temperature", temperature_handler)
 handlers.append(get_filtered_command_handler("uptime", uptime_handler))
 handlers.append(get_filtered_command_handler("help", help_handler))
 
-handlers.append(MessageHandler(Filters.text, text_handler))
-handlers.append(MessageHandler(Filters.command, unknown_handler))
+handlers.append(get_filtered_message_handler(Filters.text, text_handler))
+handlers.append(get_filtered_message_handler(Filters.command, unknown_handler))
 
 if settings_get("images_dlna_basepath"):
-    handlers.append(MessageHandler(Filters.photo, image_handler))
-    handlers.append(MessageHandler(Filters.document.image, image_file_handler))
+    handlers.append(get_filtered_message_handler(Filters.photo, image_handler))
+    handlers.append(
+        get_filtered_message_handler(Filters.document.image, image_file_handler)
+    )
 
 
 def main():

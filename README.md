@@ -11,7 +11,7 @@ stuff according to your needs.
 
 ## Development
 
-This bot is developed using Python 3. To start running it, first create a
+This bot is developed using Python 3 (>= 3.10). To start running it, first create a
 new virtual environment:
 
     python3 -m venv ENV
@@ -71,7 +71,7 @@ registered the bot.
 To do this, go to the chat with BotFather, use the `/setcommands` command,
 choose your bot and then reply with the commands and respective information
 in the specified format. To make this easier, you can copy the contents of
-the [command_descriptions](command_descriptions.txt) file, as it already
+the [command_descriptions](command_descriptions.md) file, as it already
 contains the commands and information in the correct format.
 
 ## Settings
